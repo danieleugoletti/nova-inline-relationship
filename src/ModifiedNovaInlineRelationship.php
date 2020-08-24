@@ -189,7 +189,7 @@ class ModifiedNovaInlineRelationship extends Field
         return $this->getPropertiesFromFields($fields)
             ->keyBy('attribute')
             ->map(function ($value, $key) {
-                return $this->setMetaFromClass($value, $key);
+                return $this->setMetaFromClass($value, $key, 0);
             });
     }
 
@@ -311,15 +311,17 @@ class ModifiedNovaInlineRelationship extends Field
      *
      * @param array $item
      * @param $attrib
-     * @param null $value
+     * @param null $overrideValidationKeyIndex
      *
      * @return array
      */
-    protected function setMetaFromClass(array $item, $attrib, $value = null)
+    protected function setMetaFromClass(array $item, $attrib, $overrideValidationKeyIndex = null)
     {
         $field = $item['field'];
-
         $item['meta'] = $field->jsonSerialize();
+        if (!is_null($overrideValidationKeyIndex)) {
+            $item['meta']['validationKey'] = sprintf('%s_%s_%s', $this->attribute, $overrideValidationKeyIndex, $item['meta']['validationKey']);
+        }
 
         // We are using Singular Label instead of name to display labels as compound name will be used in Vue
         $item['meta']['singularLabel'] = Str::title(Str::singular(str_replace('_', ' ', $item['label'] ?? $attrib)));
@@ -492,7 +494,8 @@ class ModifiedNovaInlineRelationship extends Field
                 ? new $this->resourceClass($related_model)
                 : Nova::newResourceFromModel($related_model);
 
-            $properties = $properties->map(function ($property, $attrib) use ($related_resource) {
+
+            $properties = $properties->map(function ($property, $attrib) use ($related_resource, $index) {
                 $request = $this->getNovaRequest();
 
                 if ($request->isCreateOrAttachRequest() || $request->isUpdateOrUpdateAttachedRequest()) {
@@ -501,7 +504,7 @@ class ModifiedNovaInlineRelationship extends Field
                     $property['field']->resolveForDisplay($related_resource);
                 }
 
-                $property = $this->setMetaFromClass($property, $attrib, null);
+                $property = $this->setMetaFromClass($property, $attrib, $index);
 
                 return $property;
             });
