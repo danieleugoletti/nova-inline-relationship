@@ -524,19 +524,27 @@ class ModifiedNovaInlineRelationship extends Field
     protected function getResourceResponse(NovaRequest $request, $response, Collection $properties): array
     {
         return collect($response)->map(function ($item) use ($properties, $request) {
-            return collect($item)->map(function ($value, $key) use ($properties, $request, $item) {
+            $values = collect(array_keys($item))->reduce(function($carry, $key) use ($properties, $request, $item) {
+                if (in_array($key, ['modelId', 'values'])) {
+                    return $carry;
+                }
+
+                $value = $item['values'][$key] ?? null;
                 if ($properties->has($key)) {
                     $field = $this->getResourceField($properties->get($key), $key);
                     $newRequest = $this->getDuplicateRequest($request, $item);
 
-                    return $this->getValueFromField($field, $newRequest, $key)
-                        ?? ($field instanceof File) && !empty($value)
-                        ? $value
-                        : null;
+                    $value = $this->getValueFromField($field, $newRequest, $key)
+                            ?? (($field instanceof File) && !empty($value)
+                                ? $value
+                                : null);
                 }
 
-                return $value;
-            })->all();
+                $carry[$key] = $value;
+                return $carry;
+            }, []);
+
+            return ['modelId' => $item['modelId'], 'values' => $values];
         })->all();
     }
 
