@@ -58,6 +58,13 @@ class ModifiedNovaInlineRelationship extends Field
     protected $request;
 
     /**
+     * Custom field attribute
+     *
+     * @var array
+     */
+    protected $customAttributes = [];
+
+    /**
      * Set original request.
      *
      * @param Request $Request
@@ -66,6 +73,18 @@ class ModifiedNovaInlineRelationship extends Field
     public function setRequest(Request $Request)
     {
         $this->request = $Request;
+        return $this;
+    }
+
+    /**
+     * Set custom field attributes.
+     *
+     * @param array $customAttributes
+     * @return $this
+     */
+    public function setCustomAttibutes($customAttributes)
+    {
+        $this->customAttributes = $customAttributes;
         return $this;
     }
 
@@ -587,5 +606,15 @@ class ModifiedNovaInlineRelationship extends Field
             ]);
         }
         return $this->request;
+    }
+
+    /**
+     * Prepare the field for JSON serialization.
+     *
+     * @return array
+     */
+    public function jsonSerialize()
+    {
+        return array_merge(parent::jsonSerialize(), $this->customAttributes);
     }
 }

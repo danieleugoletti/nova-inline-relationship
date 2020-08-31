@@ -30,7 +30,7 @@ class NovaInlineRelationshipServiceProvider extends ServiceProvider
             Nova::style('nova-inline-relationship', __DIR__ . '/../dist/css/field.css');
         });
 
-        Field::macro('inline', function (Request $Request) {
+        Field::macro('inline', function (Request $Request, $customAttributes=[]) {
             if (! class_exists(NovaInlineRelationshipHelper::getObserver($this))) {
                 throw UnsupportedRelationshipType::create(class_basename($this), $this->attribute);
             }
@@ -42,7 +42,8 @@ class NovaInlineRelationshipServiceProvider extends ServiceProvider
 
             return $InlineRelationship::make($this->name, $this->attribute)
                 ->resourceClass($this->resourceClass)
-                ->setRequest($Request);
+                ->setRequest($Request)
+                ->setCustomAttibutes($customAttributes);
         });
     }
 
