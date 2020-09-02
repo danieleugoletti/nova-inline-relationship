@@ -387,9 +387,11 @@ class ModifiedNovaInlineRelationship extends Field
      */
     protected function getResourceField($props, $key): Field
     {
-        $attrs = ['name' => $key, 'attribute' => $key];
-
-        return resolve($props['component'], $attrs);
+        /** @var newField Field */
+        $newField = clone $props['field'];
+        $newField->name = $key;
+        $newField->attribute = $key;
+        return $newField;
     }
 
     /**
